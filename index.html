@@ -32,7 +32,7 @@
 					<hr>
 					<ul id="sortable" class="list-unstyled">
 						
-						{{#task}}
+						{{#each task}}
 							{{#unless complete}}
 							<li class="ui-state-default">
 								
@@ -49,7 +49,7 @@
 								</div>
 							</li>
 							{{/unless}}
-						{{/task}}
+						{{/each}}
 					</ul>
 				</div>
 			</div>
@@ -57,12 +57,12 @@
 				<div class="todolist">
 					<h1>Already Done</h1>
 					<ul id="done-items" class="list-unstyled">
-						{{#task}}
+						{{#each task}}
 							{{#if complete}}
 							<li><input type="checkbox" name="{{:name}}[complete]" data-live-sync="true" value="1" {{#if complete}}checked="checked"{{/if}} /> {{$ title}}
 							<button class="remove-item btn btn-default btn-xs pull-right" data-remove-node="{{@contextPath}}"><span class="glyphicon glyphicon-remove"></span></button></li>
 							{{/if}}
-						{{/task}}
+						{{/each}}
 					</ul>
 				</div>
 			</div>
