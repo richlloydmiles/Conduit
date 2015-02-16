@@ -32,25 +32,24 @@
 					<hr>
 					<ul id="sortable" class="list-unstyled">
 						
-						{{#each task}}
-						{{#unless complete}}
-						<li class="ui-state-default">
-							
-							<div class="checkbox">
-								{{#unless edit}}
-									<label>
-										<input type="checkbox" name="{{:name}}[complete]" data-live-sync="true" value="1" {{#if complete}}checked="checked"{{/if}} {{#if edit}}disabled="disabled"{{/if}} /> {{#unless edit}}{{$ title}}{{/unless}}
-									</label>
-									<button class="btn btn-default btn-xs pull-right" type="button" data-set-node="{{@contextPath}}.edit true">Edit</button>
-								{{else}}
-									<input class="form-control" type="text" name="{{:name}}[title]" value="{{title}}" data-remove-node="{{@contextPath}}.edit" data-auto-focus="true" data-live-sync="true">
-								{{/unless}}
+						{{#task}}
+							{{#unless complete}}
+							<li class="ui-state-default">
+								
+								<div class="checkbox">
+									{{#unless edit}}
+										<label>
+											<input type="checkbox" name="{{:name}}[complete]" data-live-sync="true" value="1" {{#if complete}}checked="checked"{{/if}} {{#if edit}}disabled="disabled"{{/if}} /> {{#unless edit}}{{$ title}}{{/unless}}
+										</label>
+										<button class="btn btn-default btn-xs pull-right" type="button" data-set-node="{{@contextPath}}.edit true">Edit</button>
+									{{else}}
+										<input class="form-control" type="text" name="{{:name}}[title]" value="{{title}}" data-remove-node="{{@contextPath}}.edit" data-auto-focus="true" data-live-sync="true">
+									{{/unless}}
 
-							</div>
-						</li>
-						{{/unless}}
-						{{/each}}
-
+								</div>
+							</li>
+							{{/unless}}
+						{{/task}}
 					</ul>
 				</div>
 			</div>
@@ -58,12 +57,16 @@
 				<div class="todolist">
 					<h1>Already Done</h1>
 					<ul id="done-items" class="list-unstyled">
-						{{#each task}}
+						{{#task}}
 							{{#if complete}}
 							<li><input type="checkbox" name="{{:name}}[complete]" data-live-sync="true" value="1" {{#if complete}}checked="checked"{{/if}} /> {{$ title}}
 							<button class="remove-item btn btn-default btn-xs pull-right" data-remove-node="{{@contextPath}}"><span class="glyphicon glyphicon-remove"></span></button></li>
 							{{/if}}
-						{{/each}}
+						{{/task}}
+						{{#unless task}}
+						<hr>
+						<button class="btn btn-default btn-block" data-remove-node="task">Clear all tasks</button>
+						{{/unless}}
 					</ul>
 				</div>
 			</div>
