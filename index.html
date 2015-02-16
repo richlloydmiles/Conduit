@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Conduit Test</title>
+
+	<!-- Bootstrap -->
+	<link href="demo/css/bootstrap.min.css" rel="stylesheet">
+
+
+	<link href="demo/css/demo.css" rel="stylesheet">
+
+
+</head>
+<body>
+
+
+	<div class="container">
+		<div class="conduit-canvas" data-cache="local"></div>
+	</div>
+
+
+	<script type="text/x-handlebars" id="conduit-app">
+		
+		<div class="row">
+			<div class="col-md-6">
+				<div class="todolist not-done">
+					<h1>Todo <span id="title-preview"></span></h1>
+					<input id="new-task" data-event="change" data-sync="#title-preview" type="text" class="form-control add-todo conduit" data-add-node="task" data-node-default="title" placeholder="Add todo" autocomplete="off">
+					<hr>
+					<ul id="sortable" class="list-unstyled">
+						
+						{{#each task}}
+						{{#unless complete}}
+						<li class="ui-state-default">
+							
+							<div class="checkbox">
+								
+								<label>
+									<input type="checkbox" name="{{:name}}[complete]" data-live-sync="true" value="1" {{#if complete}}checked="checked"{{/if}} {{#if edit}}disabled="disabled"{{/if}} /> {{#unless edit}}{{$ title}}{{/unless}}
+								</label>
+
+								{{#unless edit}}
+									<button class="btn btn-default btn-xs pull-right" type="button" data-set-node="{{@contextPath}}.edit true">Edit</button>
+								{{else}}
+									<input type="text" name="{{:name}}[title]" value="{{title}}" data-remove-node="{{@contextPath}}.edit" data-auto-focus="true" data-live-sync="true">
+								{{/unless}}
+
+							</div>
+						</li>
+						{{/unless}}
+						{{/each}}
+
+					</ul>
+				</div>
+			</div>
+			<div class="col-md-6">
+				<div class="todolist">
+					<h1>Already Done</h1>
+					<ul id="done-items" class="list-unstyled">
+						{{#each task}}
+							{{#if complete}}
+							<li><input type="checkbox" name="{{:name}}[complete]" data-live-sync="true" value="1" {{#if complete}}checked="checked"{{/if}} /> {{$ title}}
+							<button class="remove-item btn btn-default btn-xs pull-right" data-remove-node="{{@contextPath}}"><span class="glyphicon glyphicon-remove"></span></button></li>
+							{{/if}}
+						{{/each}}
+					</ul>
+				</div>
+			</div>
+		</div>
+	</script>
+
+	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+	<!-- Include all compiled plugins (below), or include individual files as needed -->
+	<script src="demo/js/bootstrap.min.js"></script>
+
+	<script src="caldera-conduit.min.js"></script>
+
+</body>
+</html>
