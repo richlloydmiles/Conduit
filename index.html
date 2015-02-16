@@ -37,15 +37,13 @@
 						<li class="ui-state-default">
 							
 							<div class="checkbox">
-								
-								<label>
-									<input type="checkbox" name="{{:name}}[complete]" data-live-sync="true" value="1" {{#if complete}}checked="checked"{{/if}} {{#if edit}}disabled="disabled"{{/if}} /> {{#unless edit}}{{$ title}}{{/unless}}
-								</label>
-
 								{{#unless edit}}
+									<label>
+										<input type="checkbox" name="{{:name}}[complete]" data-live-sync="true" value="1" {{#if complete}}checked="checked"{{/if}} {{#if edit}}disabled="disabled"{{/if}} /> {{#unless edit}}{{$ title}}{{/unless}}
+									</label>
 									<button class="btn btn-default btn-xs pull-right" type="button" data-set-node="{{@contextPath}}.edit true">Edit</button>
 								{{else}}
-									<input type="text" name="{{:name}}[title]" value="{{title}}" data-remove-node="{{@contextPath}}.edit" data-auto-focus="true" data-live-sync="true">
+									<input class="form-control" type="text" name="{{:name}}[title]" value="{{title}}" data-remove-node="{{@contextPath}}.edit" data-auto-focus="true" data-live-sync="true">
 								{{/unless}}
 
 							</div>
