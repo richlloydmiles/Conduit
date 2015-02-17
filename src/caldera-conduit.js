@@ -3763,6 +3763,14 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
     
   });
 
+  Handlebars.registerHelper("count", function(context, options) {
+    var count = 0;
+    for( var n in context ){
+      count += 1;
+    }
+    return count;
+  });
+
   Handlebars.registerHelper("even", function(options) {
     var intval = options.data.index / 2;
     if( intval === Math.ceil( intval ) ){
@@ -3807,7 +3815,7 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
         return;
       }
 
-      var nodes = this._node_point.split('.'),
+      var nodes = path.split('.'),
           node_point_record = nodes.join('][') + ']',
           node_path = node_point_record.replace( nodes[0] + ']', nodes[0] );
 
@@ -4547,6 +4555,15 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
   $.fn.conduit.registerhelper('handlebars', {
     bind  : function(triggers, defaults){
       var templates = triggers.filter("[data-template-url]");
+
+      var partials = $('[type="text/x-handlebars-partial"]');
+
+      if( partials.length ){
+        partials.each( function(){
+          Handlebars.registerPartial( this.id, $(this).html() );
+        });
+      }
+
       if(templates.length){
         templates.each(function(){
           var trigger = $(this);
@@ -4603,6 +4620,8 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
         });
       }
 
+
+
     },
     request_params  : function(request, defaults, params){
       if((params.trigger.data('templateUrl') || params.trigger.data('template')) && typeof Handlebars === 'object'){
@@ -4620,8 +4639,8 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
         if( typeof compiledTemplates[opts.params.trigger.data('template')] === 'function' ){
           opts.data = compiledTemplates[opts.params.trigger.data('template')](opts.data);
         }else{
-          if($(opts.params.trigger.data('template'))){
-            compiledTemplates[opts.params.trigger.data('template')] = Handlebars.compile( $(opts.params.trigger.data('template')).html(), { trackIds : true, compat: true } );
+          if($(opts.params.trigger.data('template'))){            
+            compiledTemplates[opts.params.trigger.data('template')] = Handlebars.compile( $( opts.params.trigger.data('template') ).html(), { trackIds : true, compat: true } );
             opts.data = compiledTemplates[opts.params.trigger.data('template')](opts.data);
           }
         }
@@ -4936,34 +4955,41 @@ var __module0__ = (function(__dependency1__, __dependency2__, __dependency3__, _
 
 var caldera_conduit_canvas = false,
   caldera_conduit_element,
-  conduit_record_change,
+  conduit_rebuild,
   caldera_conduit_object = {};
 
 jQuery( function($){
 
   var conduit_update_cache;
 
-  conduit_record_change = function(){
+  conduit_rebuild = function(){
     // hook and rebuild the fields list
-    conduit_update_cache();
+    //conduit_update_cache();
     $(document).trigger('record_change');
     caldera_conduit_element.trigger('refresh');
   }
 
   conduit_get_node_points = function(el){
 
-    var path;
+    var path,
+        nodes;
     if( typeof el === 'string' ){
       path = el;
     }else{
       var node = $(el);
+      if( node.data( '_node_points' ) ){
+        return node.data( '_node_points' );
+      }
       if( !node.prop('name') ){
         return false;
       }
       path = node.prop('name').replace(/\]/gi, '').replace(/\[/gi, '.');
     }
-    
-    return path.split('.')
+    nodes = path.split('.');
+    if( node ){
+      node.data( '_node_points', nodes );
+    }
+    return nodes;
   }
   
   conduit_get_node_parent = function(el){
@@ -4996,12 +5022,12 @@ jQuery( function($){
       point = nodes[nodes.length-1];
 
     delete parent[ point ];
-    
+
     conduit_update_object( nodes, parent );
 
   }
 
-  conduit_set_node_object = function(el, setValue){
+  conduit_set_node_object = function(el, setValue, tmp){
 
     var parent  = conduit_get_node_parent( el );
     if( parent === false ){
@@ -5031,10 +5057,10 @@ jQuery( function($){
       parent[ point ] = value;      
     }
     
-    conduit_update_object( nodes, parent );
+    conduit_update_object( nodes, parent, tmp );
 
   }
-  conduit_update_object = function(nodes, parent){
+  conduit_update_object = function(nodes, parent, tmp){
     
     if( typeof nodes === 'string' ){
       nodes = conduit_get_node_points( nodes );
@@ -5047,13 +5073,23 @@ jQuery( function($){
 
     // do node points
     nodes.pop();
-    var node_string = '{ "' + nodes.join( '": { "') + '" : ' + JSON.stringify( parent );
-    for( var cls = 0; cls <= nodes.length-1; cls++){
-      node_string += '}';
+    var node_string = '';
+    if( nodes.length ){
+      node_string = '{ "' + nodes.join( '": { "') + '" : ' + JSON.stringify( parent );
+      for( var cls = 0; cls <= nodes.length-1; cls++){
+        node_string += '}';
+      }      
+    }else{
+      node_string = JSON.stringify( parent );
     }
 
     $.extend( true, caldera_conduit_object, JSON.parse( node_string ) );
-    conduit_update_cache();   
+    if( !tmp ){
+      conduit_update_cache();
+    }else{
+      conduit_rebuild();
+      caldera_conduit_object = conduit_get_cache();
+    }
   }
 
   conduit_update_cache = function(){
@@ -5105,9 +5141,17 @@ jQuery( function($){
 
       caldera_conduit_element.on('keyup change focusout','input, select, textarea', function(e) {
 
-        conduit_update_binding( this );
-        conduit_set_node_object( this );
-        conduit_update_cache();
+        console.time('set node');
+          if( e.type === 'keyup' && ( e.keyCode === 27 || e.key === "Esc" ) ){
+            conduit_rebuild();
+            return;
+          }
+          conduit_update_binding( this );
+          if( e.type === 'change' ){
+            conduit_set_node_object( this );
+          }
+        
+        console.timeEnd('set node')
 
         if( $(this).data('removeNode') && ( e.type === 'change' || e.type === 'focusout' ) ){
           conduit_delete_node_object( $(this).data('removeNode') );
@@ -5141,7 +5185,7 @@ jQuery( function($){
       
       nodes = trigger.data('addNode').split('.');
       var node_point_record = nodes.join('.') + '.' + id,
-        node_defaults = JSON.parse( '{ "_id" : "' + id + '", "_node_point" : "' + node_point_record + '" }' );
+        node_defaults = {};//JSON.parse( '{ "_id" : "' + id + '", "_node_point" : "' + node_point_record + '" }' );
 
       if( trigger.data('nodeDefault') && typeof trigger.data('nodeDefault') === 'object' ){       
         $.extend( true, node_defaults, trigger.data('nodeDefault') );
@@ -5168,7 +5212,8 @@ jQuery( function($){
     }else{
       $.extend( true, caldera_conduit_object, obj.data );
     }
-    conduit_record_change();
+    conduit_update_cache();
+    conduit_rebuild();
   }
 
   
@@ -5220,15 +5265,26 @@ jQuery( function($){
   });
 
   // node property set
-  $(document).on('click', '[data-set-node]', function(e){
-    var node = $(this).data('setNode').split(' '),
-      value = null;
+  $(document).on('click', '[data-set-node],[data-temp-node]', function(e){
+    
+    var clicked = $(this), node, value = null, tmp = false;
+
+    if( clicked.data('setNode') ){
+      node = clicked.data('setNode').split(' ');
+    }else{
+      node = clicked.data('tempNode').split(' ');
+      tmp = true;
+    }
+
     if( node[1] ){
       value = node[1];
     }
 
-    conduit_set_node_object( node[0], value );
-    conduit_record_change();
+    conduit_set_node_object( node[0], value, tmp );
+    if( !tmp ){
+      conduit_rebuild();
+    }
+
   });
 
 
@@ -5237,14 +5293,36 @@ jQuery( function($){
     
     if( !$(this).is('input') ){
       conduit_delete_node_object( $(this).data('removeNode') );
-      conduit_record_change();
+      conduit_rebuild();
     }
 
   });
+  // row remover global neeto
+  $(document).on('click', '[data-add-node]', function(e){
+  
+    if( $(this).hasClass('conduit') ){
+      return;
+    }
+    conduit_add_node( { trigger : $(this) } );
+
+  });
+  // rename node
+  $(document).on('click', '[data-rename-node]', function(e){
+
+    var nodes = $(this).data('renameNode').split(' ');
+    if( !nodes[1] ){
+      return;
+    }
+    
+    conduit_rename_node_point( nodes[0], nodes[1] );
+
+  });
+
+
   
   // initialize live sync rebuild
   $(document).on('change blur', '[data-live-sync]', function(e){
-    conduit_record_change();
+    conduit_rebuild();
   });
 
   // initialise conduit triggers
@@ -5267,7 +5345,7 @@ jQuery( function($){
             var parent = conduit_get_node_parent( obj.params.trigger.data('target') );
             if( parent && parent._id ){
               conduit_set_node_object( obj.params.trigger.data('target'), obj.data );
-              conduit_record_change();
+              conduit_rebuild();
             }
           }else if( obj.params.trigger.data('addNode') && obj.params.trigger.data('request') && obj.params.trigger.data('request') !== 'conduit_add_node' ){
             obj.params.trigger.data('nodeDefault', obj.rawData );

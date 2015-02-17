@@ -18,7 +18,7 @@
 
 
 	<div class="container">
-		<div class="conduit-canvas" data-cache="local"></div>
+		<div class="conduit-canvas" data-cache="session"></div>
 	</div>
 
 
@@ -30,6 +30,7 @@
 					<h1>Todo</h1>
 					<input id="new-task" data-event="change" type="text" class="form-control add-todo conduit" data-add-node="task" data-node-default="title" placeholder="Add todo" autocomplete="off">
 					<hr>
+					<button type="button" class="btn btn-primary" data-add-node="option">Add Option</button>
 					<ul id="sortable" class="list-unstyled">
 						
 						{{#each task}}
@@ -41,9 +42,9 @@
 										<label>
 											<input type="checkbox" name="{{:name}}[complete]" data-live-sync="true" value="1" {{#if complete}}checked="checked"{{/if}} {{#if edit}}disabled="disabled"{{/if}} /> {{#unless edit}}{{$ title}}{{/unless}}
 										</label>
-										<button class="btn btn-default btn-xs pull-right" type="button" data-set-node="{{@contextPath}}.edit true">Edit</button>
+										<button class="btn btn-default btn-xs pull-right" type="button" data-temp-node="{{@contextPath}}.edit true">Edit</button>
 									{{else}}
-										<input class="form-control" type="text" name="{{:name}}[title]" value="{{title}}" data-remove-node="{{@contextPath}}.edit" data-auto-focus="true" data-live-sync="true">
+										<input class="form-control" type="text" name="{{:name}}[title]" value="{{title}}" data-auto-focus="true" data-live-sync="true">
 									{{/unless}}
 
 								</div>
@@ -67,6 +68,11 @@
 				</div>
 			</div>
 		</div>
+		{{count option}}
+		{{#each option}}			
+			<div style="clear:both;margin:5px 0;">{{@contextPath}} - {{@key}} <button type="button" class="btn btn-danger btn-xs pull-right" data-remove-node="{{@contextPath}}">Remove</button></div>
+			
+		{{/each}}
 	</script>
 
 	<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
@@ -75,6 +81,8 @@
 	<script src="demo/js/bootstrap.min.js"></script>
 
 	<script src="caldera-conduit.min.js"></script>
+
+
 
 </body>
 </html>
