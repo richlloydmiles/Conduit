@@ -5141,6 +5141,7 @@ jQuery( function($){
 
       caldera_conduit_element.on('keyup change focusout','input, select, textarea', function(e) {
 
+        console.time('set node');
           if( e.type === 'keyup' && ( e.keyCode === 27 || e.key === "Esc" ) ){
             conduit_rebuild();
             return;
@@ -5149,6 +5150,8 @@ jQuery( function($){
           if( e.type === 'change' ){
             conduit_set_node_object( this );
           }
+        
+        console.timeEnd('set node')
 
         if( $(this).data('removeNode') && ( e.type === 'change' || e.type === 'focusout' ) ){
           conduit_delete_node_object( $(this).data('removeNode') );
